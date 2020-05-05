@@ -21,6 +21,20 @@ pipeline {
                 }
             }
         }
+        stage ('Building docker image') {
+            steps {
+               
+                    sh 'docker build -t dock .'
+                
+            }
+        }
+        stage ('Pushing docker image to registry') {
+            steps {
+
+                    sh 'docker push asquare14/new'
+
+            }
+        }
         stage('Deliver') { 
             steps {
                 sh './scripts/deliver.sh' 
