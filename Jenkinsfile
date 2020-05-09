@@ -1,4 +1,5 @@
 pipeline {
+  /* The environment specifies the credentials required to push my image to dockerhub */
   environment {
     registry = "asquare14/new"
     registryCredential = 'dockerhub'
@@ -6,6 +7,9 @@ pipeline {
   }
   agent none
   stages {
+    /* This stage downloads the maven:3-alpine Docker image and runs this image as a separate container. 
+      This means that we have two separate Jenkins and Maven containers running locally in Docker.
+      The Maven container becomes the agent that Jenkins uses to run your Pipeline project.*/
     stage('Maven') {
       agent {
         docker {
@@ -14,12 +18,15 @@ pipeline {
         }
       }
       stages {
+      /* Build stage downloads the artefacts needed to run our Java Program on jenkins. */
         stage('Build') {
           steps {
             sh 'mvn -B -DskipTests clean package'
           }
         }
-        stage('Test') {
+      /* This is the test stage of our pipeline. It executes the Maven command to run unit tests on our Java project.
+         It also generates a JUnit XML report, which is saved to the target/surefire-reports directory . */
+       stage('Test') {
           steps {
             sh 'mvn test'
           }
@@ -31,6 +38,8 @@ pipeline {
         }
       }
     }
+    /* This is the deliver stage of our pipeline where we build the docker image of our application using our dockerfile
+    and then deliver our image to dockerhub. */
     stage('Deliver') {
       agent any
       stages {
@@ -57,6 +66,7 @@ pipeline {
         }
       }
     }
+  /* This is the deploy stage where rundeck pulls the docker image from dockerhub and builds it.  */
   stage('Deploy- Rundeck') {
       agent any
       steps {
